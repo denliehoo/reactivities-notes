@@ -1,31 +1,43 @@
-import React, { useEffect, useState } from "react";
-import List from "semantic-ui-react/dist/commonjs/elements/List";
-import { Header } from "semantic-ui-react";
-import axios from "axios";
-// import logo from "./logo.svg";
-// import "./App.css";
+import { Container } from 'semantic-ui-react';
+import NavBar from './NavBar';
+import { observer } from 'mobx-react-lite';
+import { Outlet, ScrollRestoration, useLocation } from 'react-router-dom';
+import HomePage from '../../features/home/HomePage';
+import { ToastContainer } from 'react-toastify';
+import { useStore } from '../stores/store';
+import { useEffect } from 'react';
+import LoadingComponent from './LoadingComponent';
+import ModalContainer from '../common/modals/ModalContainer';
 
 function App() {
-  const [activites, setActivities] = useState([]);
+  const location = useLocation();
+  const { commonStore, userStore } = useStore();
 
   useEffect(() => {
-    axios.get("http://localhost:5000/api/activities").then((res) => {
-      console.log(res);
-      setActivities(res.data);
-    });
-  }, []);
+    if (commonStore.token) {
+      userStore.getUser().finally(() => commonStore.setAppLoaded())
+    } else {
+      commonStore.setAppLoaded()
+    }
+  }, [commonStore, userStore])
+
+  if (!commonStore.appLoaded) return <LoadingComponent content='Loading app...' />
 
   return (
-    <div>
-      <Header as="h2" icon={"users"} content={"Reactivities"} />
-      <div>asd</div>
-      <List>
-        {activites.map((activity: any) => (
-          <List.Item key={activity.id}>{activity.title}</List.Item>
-        ))}
-      </List>
-    </div>
+    <>
+      <ScrollRestoration />
+      <ModalContainer />
+      <ToastContainer position='bottom-right' hideProgressBar theme='colored' />
+      {location.pathname === '/' ? <HomePage /> : (
+        <>
+          <NavBar />
+          <Container style={{ marginTop: '7em' }}>
+            <Outlet />
+          </Container>
+        </>
+      )}
+    </>
   );
 }
 
-export default App;
+export default observer(App);

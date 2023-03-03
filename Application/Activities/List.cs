@@ -1,3 +1,4 @@
+using Application.Core;
 using Domain;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -9,15 +10,15 @@ namespace Application.Activities
     public class List
     {
         // inherit from IRequest and IRequestHandler from MediatR
-        public class Query: IRequest<List<Activity>>{}
+        public class Query : IRequest<Result<List<Activity>>> { }
 
-        public class Handler : IRequestHandler<Query, List<Activity>>
+        public class Handler : IRequestHandler<Query, Result<List<Activity>>>
         {
             private readonly DataContext _context;
             public Handler(DataContext context)
             {
                 _context = context;
-            } 
+            }
             /*
             returns a Task of List<Activity> 
              we pass our Query which forms a request which pass that to our Handler, which returns 
@@ -30,10 +31,10 @@ namespace Application.Activities
             would still send a respond. The CancellationToken prevents this from happening
             and cancels the request (if we want to implement it)
             */
-            public async Task<List<Activity>> Handle(Query request, CancellationToken cancellationToken)
+            public async Task<Result<List<Activity>>> Handle(Query request, CancellationToken cancellationToken)
             {
-                return await _context.Activities.ToListAsync();
+                return Result<List<Activity>>.Success(await _context.Activities.ToListAsync());
             }
         }
     }
-} 
+}
