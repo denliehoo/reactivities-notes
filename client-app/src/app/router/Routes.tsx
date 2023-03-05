@@ -13,8 +13,10 @@ export const routes: RouteObject[] = [
     {
         path: '/',
         element: <App />,
-        children: [
-            {element: <RequireAuth />, children: [
+        // temp remove authentication so can check out erros page
+        // children: [
+        //     {element: <RequireAuth />, 
+            children: [
                 {path: 'activities', element: <ActivityDashboard />},
                 {path: 'activities/:id', element: <ActivityDetails />},
                 {path: 'createActivity', element: <ActivityForm key='create' />},
@@ -26,7 +28,7 @@ export const routes: RouteObject[] = [
             {path: 'server-error', element: <ServerError />},
             {path: '*', element: <Navigate replace to='/not-found' />},
         ]
-    }
-]
+    // }
+// ]
 
 export const router = createBrowserRouter(routes);

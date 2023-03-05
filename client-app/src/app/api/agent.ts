@@ -32,6 +32,7 @@ axios.interceptors.response.use(async response => {
     }
     return response;
 }, (error: AxiosError) => {
+    // allows us to do something based on the error codes we receive
     const { data, status, config } = error.response as AxiosResponse;
     switch (status) {
         case 400:
