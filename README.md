@@ -13,7 +13,8 @@ https://nlbsg.udemy.com/course/complete-guide-to-building-an-app-with-net-core-a
 - dotnet run
 - We can check http://localhost:5000/swagger/index.html to see our APIs on a nicer frontend
 - now, instead of dotnet run, use dotnet watch
-- or do this instead(recommended): dotnet watch --no-hot-reload
+- or do this instead(recommended):
+dotnet watch --no-hot-reload
 
 ## Frontend
 
