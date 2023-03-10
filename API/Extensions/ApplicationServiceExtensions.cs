@@ -1,7 +1,9 @@
 using Application.Activities;
 using Application.Core;
+using Application.Interfaces;
 using FluentValidation;
 using FluentValidation.AspNetCore;
+using Infrastructure.Security;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Persistence;
@@ -46,6 +48,11 @@ namespace API.Extensions
             services.AddAutoMapper(typeof(MappingProfiles).Assembly);
             services.AddFluentValidationAutoValidation();
             services.AddValidatorsFromAssemblyContaining<Create>();
+            // this 2 lines below makes the IUSerAccessor and UserAccessor
+            // available to be injected into our Application Handlers
+            // i.e. the CRUD handlers in Application/Activities
+            services.AddHttpContextAccessor();
+            services.AddScoped<IUserAccessor, UserAccessor>();
 
             return services;
         }
