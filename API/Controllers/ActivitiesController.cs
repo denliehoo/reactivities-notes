@@ -1,10 +1,7 @@
 using Application.Activities;
 using Domain;
-using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Persistence;
 
 namespace API.Controllers
 {
@@ -32,6 +29,7 @@ namespace API.Controllers
         }
 
         // update (edit)
+        [Authorize(Policy = "IsActivityHost")]
         [HttpPut("{id}")] // api/activities  ;implementation in Edit.cs
         public async Task<IActionResult> EditActivity(Guid id, Activity activity)
         {
@@ -39,10 +37,18 @@ namespace API.Controllers
             return HandleResult(await Mediator.Send(new Edit.Command { Activity = activity }));
         }
 
+        [Authorize(Policy = "IsActivityHost")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteActivity(Guid id)
         {
             return HandleResult(await Mediator.Send(new Delete.Command { Id = id }));
+        }
+
+        // allows users/host to attend/unattend and cancel/uncancel the event
+        [HttpPost("{id}/attend")]
+        public async Task<IActionResult> Attend(Guid id)
+        {
+            return HandleResult(await Mediator.Send(new UpdateAttendance.Command { Id = id }));
         }
 
     }

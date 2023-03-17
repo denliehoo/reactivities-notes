@@ -1,3 +1,4 @@
+using Application.Activities;
 using AutoMapper;
 using Domain;
 
@@ -10,6 +11,16 @@ namespace Application.Core
         public MappingProfiles()
         {
             CreateMap<Activity, Activity>();
+
+            // for the activity, maps host user name to the first or default attendee which is the host and gives the username in the ActivityDto
+            CreateMap<Activity, ActivityDto>()
+                .ForMember(d => d.HostUsername, o => o.MapFrom(s => s.Attendees
+                .FirstOrDefault(x => x.IsHost).AppUser.UserName));
+
+            CreateMap<ActivityAttendee, Profiles.Profile>()
+                .ForMember(d => d.DisplayName, o => o.MapFrom(s => s.AppUser.DisplayName))
+                .ForMember(d => d.Username, o => o.MapFrom(s => s.AppUser.UserName))
+                .ForMember(d => d.Bio, o => o.MapFrom(s => s.AppUser.Bio));
         }
     }
 }
