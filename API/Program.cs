@@ -1,6 +1,7 @@
 // this file is always the starting point of our app
 using API.Extensions;
 using API.Middleware;
+using API.SignalR;
 using Application.Activities;
 using Application.Core;
 using Domain;
@@ -44,6 +45,8 @@ app.UseAuthentication(); // authentication always comes before authorization
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapHub<ChatHub>("/chat"); // the route that they redirect to when they conenct to the chat hub is /chat
 
 // using means that once we are done with this method, anything inside it
 // will be destroyed / cleaned from memory

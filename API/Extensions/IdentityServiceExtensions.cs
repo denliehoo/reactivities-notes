@@ -32,6 +32,21 @@ namespace API.Extensions
                     ValidateIssuer = false,
                     ValidateAudience = false
                 };
+                opt.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        // gets the token from our query string that we sent w/ our SignalR connection when connecting with the SignalR Hub
+                        var accessToken = context.Request.Query["access_token"];
+                        // if path matches the endpoint of Singal R(/chat), we get the context token which allows us to authenticate to Signal R hub
+                        var path = context.HttpContext.Request.Path;
+                        if (!string.IsNullOrEmpty(accessToken) && (path.StartsWithSegments("/chat")))
+                        {
+                            context.Token = accessToken;
+                        }
+                        return Task.CompletedTask;
+                    }
+                };
             });
 
             services.AddAuthorization(opt =>
