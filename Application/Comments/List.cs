@@ -28,7 +28,7 @@ namespace Application.Comments
             {
                 var comments = await _context.Comments
                     .Where(x => x.Activity.Id == request.ActivityId)
-                    .OrderByDescending(x => x.CreatedAt)
+                    .OrderByDescending(x => x.CreatedAt) // put the newest comment at the top and oldest at the last
                     .ProjectTo<CommentDto>(_mapper.ConfigurationProvider)
                     .ToListAsync();
 
