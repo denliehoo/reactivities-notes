@@ -1,4 +1,5 @@
 using Application.Activities;
+using Application.Core;
 using Domain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -9,9 +10,9 @@ namespace API.Controllers
     {
         // read (all)
         [HttpGet] // api/activities ; implementation Application/Activities/List.cs
-        public async Task<ActionResult> GetActivities()
+        public async Task<ActionResult> GetActivities([FromQuery] ActivityParams param)
         {
-            return HandleResult(await Mediator.Send(new List.Query()));
+            return HandlePagedResult(await Mediator.Send(new List.Query { Params = param }));
         }
         // read
         [HttpGet("{id}")] // api/activities/id ; implementation in details.cs

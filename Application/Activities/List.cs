@@ -1,3 +1,4 @@
+using System.Linq;
 using Application.Core;
 using Application.Interfaces;
 using AutoMapper;
@@ -12,9 +13,12 @@ namespace Application.Activities
     public class List
     {
         // inherit from IRequest and IRequestHandler from MediatR
-        public class Query : IRequest<Result<List<ActivityDto>>> { }
+        public class Query : IRequest<Result<PagedList<ActivityDto>>>
+        {
+            public ActivityParams Params { get; set; }
+        }
 
-        public class Handler : IRequestHandler<Query, Result<List<ActivityDto>>>
+        public class Handler : IRequestHandler<Query, Result<PagedList<ActivityDto>>>
         {
             private readonly DataContext _context;
             private readonly IMapper _mapper;
@@ -37,13 +41,30 @@ namespace Application.Activities
             would still send a respond. The CancellationToken prevents this from happening
             and cancels the request (if we want to implement it)
             */
-            public async Task<Result<List<ActivityDto>>> Handle(Query request, CancellationToken cancellationToken)
+            public async Task<Result<PagedList<ActivityDto>>> Handle(Query request, CancellationToken cancellationToken)
             {
-                var activities = await _context.Activities
-                .ProjectTo<ActivityDto>(_mapper.ConfigurationProvider, new {currentUsername = _userAccessor.GetUsername()})
-                .ToListAsync(cancellationToken);
+                var query = _context.Activities
+                    .Where(d => d.Date >= request.Params.StartDate)
+                    .OrderBy(d => d.Date) // in desecnding order
+                    .ProjectTo<ActivityDto>(_mapper.ConfigurationProvider,
+                        new { currentUsername = _userAccessor.GetUsername() })
+                    .AsQueryable(); //Note: AsQueryable is not an async method
 
-                return Result<List<ActivityDto>>.Success(activities);
+                // filtering for if user is going and isnt host (i.e. what is he attending)
+                if (request.Params.IsGoing && !request.Params.IsHost)
+                {
+                    query = query.Where(x => x.Attendees.Any(a => a.Username == _userAccessor.GetUsername()));
+                }
+                // filtering for if user ishost (i.e. what is he hosting)
+                if (request.Params.IsHost && !request.Params.IsGoing)
+                {
+                    query = query.Where(x => x.HostUsername == _userAccessor.GetUsername());
+                }
+
+                return Result<PagedList<ActivityDto>>.Success(
+                    // where query is our source
+                    await PagedList<ActivityDto>.CreateAsync(query, request.Params.PageNumber, request.Params.PageSize)
+                );
             }
         }
     }
