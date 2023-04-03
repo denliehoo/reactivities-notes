@@ -44,9 +44,14 @@ app.UseAuthentication(); // authentication always comes before authorization
 
 app.UseAuthorization();
 
+app.UseDefaultFiles(); // looks in the wwwroot and find anything named index.html( which is the file we get from npm run build)
+app.UseStaticFiles(); // serves the content in the wwwwroot folder
+
 app.MapControllers();
 
 app.MapHub<ChatHub>("/chat"); // the route that they redirect to when they conenct to the chat hub is /chat
+app.MapFallbackToController("Index","Fallback");
+// now if we do dotnet run and go to localhost:5000 in our browser, it will load out built web page
 
 // using means that once we are done with this method, anything inside it
 // will be destroyed / cleaned from memory
