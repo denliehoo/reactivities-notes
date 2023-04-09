@@ -13,16 +13,12 @@ namespace API.Extensions
 {
     public static class ApplicationServiceExtensions
     {
-        // this refers to where we use this method
-        public static IServiceCollection AddApplicationServices(
-            this IServiceCollection services,
-            IConfiguration config
-        )
+        public static IServiceCollection AddApplicationServices(this IServiceCollection services,
+            IConfiguration config)
         {
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen();
-            // ***new database connection string for pdt
             services.AddDbContext<DataContext>(options =>
             {
                 var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
@@ -38,7 +34,7 @@ namespace API.Extensions
                 }
                 else
                 {
-                    // Use connection string provided at runtime by FlyIO.
+                    // Use connection string provided at runtime by Flyio.
                     var connUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
 
                     // Parse connection URL to connection string for Npgsql
@@ -51,44 +47,34 @@ namespace API.Extensions
                     var pgPass = pgUserPass.Split(":")[1];
                     var pgHost = pgHostPort.Split(":")[0];
                     var pgPort = pgHostPort.Split(":")[1];
-
-                    connStr = $"Server={pgHost};Port={pgPort};User Id={pgUser};Password={pgPass};Database={pgDb};";
+                    var updatedHost = pgHost.Replace("flycast", "internal");
+                    
+                    connStr = $"Server={updatedHost};Port={pgPort};User Id={pgUser};Password={pgPass};Database={pgDb};";
                 }
 
                 // Whether the connection string came from the local development configuration file
                 // or from the environment variable from FlyIO, use it to set up your DbContext.
                 options.UseNpgsql(connStr);
             });
-            // end of new database***
-
-            // allows us to call our APIs from localhost:3000 which is our react app
-            // without this, we will get  CORS errors
-            services
-                .AddCors(opt =>
+            services.AddCors(opt =>
+            {
+                opt.AddPolicy("CorsPolicy", policy =>
                 {
-                    opt
-                        .AddPolicy("CorsPolicy",
-                        policy =>
-                        {
-                            policy
-                                .AllowAnyMethod()
-                                .AllowAnyHeader()
-                                .WithOrigins("http://localhost:3000");
-                        });
+                    policy
+                        .AllowAnyMethod()
+                        .AllowAnyHeader()
+                        .AllowCredentials()
+                        .WithOrigins("http://localhost:3000");
                 });
+            });
             services.AddMediatR(typeof(List.Handler));
             services.AddAutoMapper(typeof(MappingProfiles).Assembly);
             services.AddFluentValidationAutoValidation();
             services.AddValidatorsFromAssemblyContaining<Create>();
-            // this 2 lines below makes the IUSerAccessor and UserAccessor
-            // available to be injected into our Application Handlers
-            // i.e. the CRUD handlers in Application/Activities
             services.AddHttpContextAccessor();
             services.AddScoped<IUserAccessor, UserAccessor>();
-
             services.AddScoped<IPhotoAccessor, PhotoAccessor>();
             services.Configure<CloudinarySettings>(config.GetSection("Cloudinary"));
-
             services.AddSignalR();
 
             return services;
